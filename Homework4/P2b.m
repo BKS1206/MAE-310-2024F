@@ -5,10 +5,12 @@ f = @(x) -20*x.^3; % f(x) is the source
 g = 1.0;           % u    = g  at x = 1
 h = 0.0;           % -u,x = h  at x = 0
 
+% for n_el = 2:2:16      % number of elements
+
 % Setup the mesh
 pp = 2;                % polynomial degree
 n_en = pp + 1;         % number of element or local nodes
-n_el = 2;              % number of elements
+n_el = 4;            
 n_np = n_el * pp + 1;  % number of nodal points
 n_eq = n_np - 1;       % number of equations
 n_int = 10;
@@ -99,36 +101,76 @@ xi_sam = -1 : (2/n_sam) : 1;
 x_sam = zeros(n_el * n_sam + 1, 1);
 y_sam = x_sam; % store the exact solution value at sampling points
 u_sam = x_sam; % store the numerical solution value at sampling pts
+u_dx_sam = x_sam;
+y_dx_sam = x_sam;
+% for ee = 1 : n_el
+%   x_ele = x_coor( IEN(ee, :) );
+%   u_ele = disp( IEN(ee, :) );
+% 
+%   if ee == n_el
+%     n_sam_end = n_sam+1;
+%   else
+%     n_sam_end = n_sam;
+%   end
+% 
+%   for ll = 1 : n_sam_end
+%     x_l = 0.0;
+%     u_l = 0.0;
+%     for aa = 1 : n_en
+%       x_l = x_l + x_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 0);
+%       u_l = u_l + u_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 0);
+%     end
+% 
+%     x_sam( (ee-1)*n_sam + ll ) = x_l;
+%     u_sam( (ee-1)*n_sam + ll ) = u_l;
+%     y_sam( (ee-1)*n_sam + ll ) = x_l^5;
+%   end
+% end
+% 
+% plot(x_sam, u_sam, '-r','LineWidth',3);
+% hold on;
+% plot(x_sam, y_sam, '-k','LineWidth',3);
 
+
+% Calculate error L2 and H1
+eL2 = 0;
+eH1 = 0;
 for ee = 1 : n_el
-  x_ele = x_coor( IEN(ee, :) );
-  u_ele = disp( IEN(ee, :) );
+    x_ele = x_coor( IEN(ee, :) );
+    u_ele = disp( IEN(ee, :) );
 
-  if ee == n_el
-    n_sam_end = n_sam+1;
-  else
-    n_sam_end = n_sam;
-  end
-
-  for ll = 1 : n_sam_end
-    x_l = 0.0;
-    u_l = 0.0;
-    for aa = 1 : n_en
-      x_l = x_l + x_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 0);
-      u_l = u_l + u_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 0);
+    if ee == n_el
+        n_sam_end = n_sam+1;
+    else
+        n_sam_end = n_sam;
     end
 
-    x_sam( (ee-1)*n_sam + ll ) = x_l;
-    u_sam( (ee-1)*n_sam + ll ) = u_l;
-    y_sam( (ee-1)*n_sam + ll ) = x_l^5;
-  end
+    for ll = 1 : n_sam_end
+        x_l = 0.0;
+        u_l = 0.0;
+        u_l_dx = 0.0;
+        dx_dxi = 0.0;
+
+        for aa = 1:n_en
+            dx_dxi = dx_dxi + x_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 1);
+            dxi_dx = 1.0 / dx_dxi;
+        end 
+
+        for aa = 1 : n_en
+            x_l = x_l + x_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 0);
+            u_l = u_l + u_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 0);
+            u_l_dx = u_l_dx + u_ele(aa) * PolyShape(pp, aa, xi_sam(ll),1) * dxi_dx;
+        end
+
+        x_sam( (ee-1)*n_sam + ll ) = x_l;
+        u_sam( (ee-1)*n_sam + ll ) = u_l;
+        u_dx_sam( (ee-1)*n_sam + ll ) = u_l_dx;
+        y_sam( (ee-1)*n_sam + ll ) = x_l^5;
+        y_dx_sam( (ee-1)*n_sam + ll ) = 5*x_l^4;
+    end
 end
 
-plot(x_sam, u_sam, '-r','LineWidth',3);
-hold on;
-plot(x_sam, y_sam, '-k','LineWidth',3);
-
-
+% end
 
 
 
