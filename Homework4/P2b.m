@@ -1,19 +1,21 @@
-clear all; clc; clf; % clean the memory, screen, and figure
+clear all; clc; clf;close all; % clean the memory, screen, and figure
 
 % Problem definition
 f = @(x) -20*x.^3; % f(x) is the source
 g = 1.0;           % u    = g  at x = 1
 h = 0.0;           % -u,x = h  at x = 0
-
-% for n_el = 2:2:16      % number of elements
+lnh_table = zeros(1,8);
+lnEL2_table = zeros(1,8);
+lnEH1_table = zeros(1,8);
+for n_el = 2:2:16      % number of elements
 
 % Setup the mesh
 pp = 2;                % polynomial degree
 n_en = pp + 1;         % number of element or local nodes
-n_el = 4;            
+
 n_np = n_el * pp + 1;  % number of nodal points
 n_eq = n_np - 1;       % number of equations
-n_int = 10;
+n_int = 20;
 
 hh = 1.0 / (n_np - 1); % space between two adjacent nodes
 x_coor = 0 : hh : 1;   % nodal coordinates for equally spaced nodes
@@ -133,11 +135,13 @@ y_dx_sam = x_sam;
 
 
 % Calculate error L2 and H1
-eL2 = 0;
-eH1 = 0;
+L2 = 0;
+H1 = 0;
 for ee = 1 : n_el
     x_ele = x_coor( IEN(ee, :) );
     u_ele = disp( IEN(ee, :) );
+    L2_l = 0;
+    H1_l = 0;
 
     if ee == n_el
         n_sam_end = n_sam+1;
@@ -167,11 +171,37 @@ for ee = 1 : n_el
         u_dx_sam( (ee-1)*n_sam + ll ) = u_l_dx;
         y_sam( (ee-1)*n_sam + ll ) = x_l^5;
         y_dx_sam( (ee-1)*n_sam + ll ) = 5*x_l^4;
+        if ll < n_sam_end    % In case of ll is larger than weights number when ll = 21 at last element
+            L2_l = L2_l + weight(ll) * (u_l_dx - x_l^5)^2 * dx_dxi;
+            H1_l = H1_l + weight(ll) * (u_l_dx - 5*x_l^4)^2 * dx_dxi;
+        end 
     end
+    L2 = L2 + L2_l;
+    H1 = H1 + H1_l;
 end
 
-% end
+Error_L2 = L2^0.5 / (1/11)^0.5;
+Error_H1 = H1^0.5 / (25/9)^0.5;
+lnEL2 = log(Error_L2);
+lnEH1 = log(Error_H1);
+lnh = log(hh);
+lnEL2_table(n_el/2) = lnEL2;
+lnEH1_table(n_el/2) = lnEH1;
+lnh_table(n_el/2) = lnh;
 
+end
+f1 = figure;
+plot(lnh_table,lnEL2_table);
+hold on
+plot(lnh_table,lnEH1_table);
+legend('e_L_2','e_H_1','Location','southeast')
+xlabel('ln(h)')
+ylabel('ln(e)')
+title('log-log plot of Error versus mesh size')
+p_L2 = polyfit(lnh_table,lnEL2_table,1);
+p_H1 = polyfit(lnh_table,lnEH1_table,1);
+slope_eL2 = p_L2(1)
+slope_eH1 = p_H1(1)
 
 
 
