@@ -1,0 +1,2 @@
+After run the code "Bonus_question.m". The differences between LU factorization method and gmres method 
+are same for tol = 1e-4and 1e-6, both of them are very small at the order of magnitude of 1e-15. The difference is caused by computer double type truncation error instead of algorithm. But when tol = 1e-2, the difference is much larger. This is caused by algorithm difference.
