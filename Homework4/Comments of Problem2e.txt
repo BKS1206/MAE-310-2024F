@@ -1,0 +1,2 @@
+When number of quadrature points are lower than 3 (1 and 2 points), the numerical solution is diverging.
+When number of quadrature points are larger than 3, the numerical and exact solution can merge well
