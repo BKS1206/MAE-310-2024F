@@ -96,16 +96,6 @@ disp = [d_temp; g];
 %y_sam = x_sam.^5;
 %hold on;
 %plot(x_sam, y_sam, '-k', 'LineWidth', 3);
-
-n_sam = 20;
-xi_sam = -1 : (2/n_sam) : 1;
-
-x_sam = zeros(n_el * n_sam + 1, 1);
-y_sam = x_sam; % store the exact solution value at sampling points
-u_sam = x_sam; % store the numerical solution value at sampling pts
-u_dx_sam = x_sam;
-y_dx_sam = x_sam;
-% for ee = 1 : n_el
 %   x_ele = x_coor( IEN(ee, :) );
 %   u_ele = disp( IEN(ee, :) );
 % 
@@ -133,57 +123,48 @@ y_dx_sam = x_sam;
 % hold on;
 % plot(x_sam, y_sam, '-k','LineWidth',3);
 
-
 % Calculate error L2 and H1
 L2 = 0;
 H1 = 0;
+nqp = 10;
+[xi, weight] = Gauss(nqp,-1,1);
+L2_top = 0.0; L2_bot = 0.0; H1_top = 0.0; H1_bot = 0.0;
+
 for ee = 1 : n_el
     x_ele = x_coor( IEN(ee, :) );
     u_ele = disp( IEN(ee, :) );
-    L2_l = 0;
-    H1_l = 0;
 
-    if ee == n_el
-        n_sam_end = n_sam+1;
-    else
-        n_sam_end = n_sam;
-    end
-
-    for ll = 1 : n_sam_end
+    for ll = 1 : nqp
         x_l = 0.0;
-        u_l = 0.0;
-        u_l_dx = 0.0;
+        uh = 0.0;
+        uh_xi = 0.0;
         dx_dxi = 0.0;
 
-        for aa = 1:n_en
-            dx_dxi = dx_dxi + x_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 1);
-            dxi_dx = 1.0 / dx_dxi;
-        end 
-
         for aa = 1 : n_en
-            x_l = x_l + x_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 0);
-            u_l = u_l + u_ele(aa) * PolyShape(pp, aa, xi_sam(ll), 0);
-            u_l_dx = u_l_dx + u_ele(aa) * PolyShape(pp, aa, xi_sam(ll),1) * dxi_dx;
+            x_l = x_l + x_ele(aa) * PolyShape(pp, aa, xi(ll), 0);
+            uh = uh + u_ele(aa) * PolyShape(pp, aa, xi(ll), 0);
+            dx_dxi = dx_dxi + x_ele(aa) * PolyShape(pp, aa, xi(ll), 1);
+            uh_xi = uh_xi + u_ele(aa) * PolyShape(pp, aa, xi(ll), 1);
         end
+        dxi_dx = 1/dx_dxi;
 
-        x_sam( (ee-1)*n_sam + ll ) = x_l;
-        u_sam( (ee-1)*n_sam + ll ) = u_l;
-        u_dx_sam( (ee-1)*n_sam + ll ) = u_l_dx;
-        y_sam( (ee-1)*n_sam + ll ) = x_l^5;
-        y_dx_sam( (ee-1)*n_sam + ll ) = 5*x_l^4;
-        if ll < n_sam_end    % In case of ll is larger than weights number when ll = 21 at last element
-            L2_l = L2_l + weight(ll) * (u_l_dx - x_l^5)^2 * dx_dxi;
-            H1_l = H1_l + weight(ll) * (u_l_dx - 5*x_l^4)^2 * dx_dxi;
-        end 
+        L2_top = L2_top + weight(ll) * (uh - x_l^5)^2 * dx_dxi;
+        L2_bot = L2_bot + weight(ll) * (x_l^5)^2 * dx_dxi;
+
+        H1_top = H1_top + weight(ll) * ( uh_xi * dxi_dx - 5 * x_l^4 )^2 * dx_dxi;
+        H1_bot = H1_bot + weight(ll) * (5 * x_l^4)^2 * dx_dxi;
+
     end
-    L2 = L2 + L2_l;
-    H1 = H1 + H1_l;
 end
 
-Error_L2 = L2^0.5 / (1/11)^0.5;
-Error_H1 = H1^0.5 / (25/9)^0.5;
-lnEL2 = log(Error_L2);
-lnEH1 = log(Error_H1);
+L2_top = sqrt(L2_top); L2_bot = sqrt(L2_bot);
+H1_top = sqrt(H1_top); H1_bot = sqrt(H1_bot);
+
+L2_error = L2_top / L2_bot;
+H1_error = H1_top / H1_bot;
+
+lnEL2 = log(L2_error);
+lnEH1 = log(H1_error);
 lnh = log(hh);
 lnEL2_table(n_el/2) = lnEL2;
 lnEH1_table(n_el/2) = lnEH1;
