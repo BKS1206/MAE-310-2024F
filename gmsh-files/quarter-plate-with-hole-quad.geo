@@ -9,6 +9,8 @@ Point(5) = {-L + R, -L, 0};
 Point(6) = {-L, -L + R, 0};
 Point(7) = {-L + Cos(Pi/4) * R, -L + Sin(Pi/4) * R, 0};
 
+// Draw the points of the geometry. Points 5,6,7 corresponds to the bottom,top and the middle points of the small hole, while point 4 is the center.
+
 Circle(1) = {5, 4, 7};
 Circle(2) = {7, 4, 6};
 
@@ -36,3 +38,5 @@ Mesh.ElementOrder = 1;
 Mesh.Algorithm = 8;
 
 // EOF
+//+
+Coherence;
