@@ -40,3 +40,11 @@ Mesh.Algorithm = 8;
 // EOF
 //+
 Coherence;
+//+
+Recursive Delete {
+  Curve{4}; Curve{7}; Curve{5}; Curve{6}; Curve{1}; Curve{2}; Curve{3}; 
+}
+//+
+Recursive Delete {
+  Point{3}; Curve{4}; Curve{3}; Curve{7}; Curve{2}; Curve{1}; Point{4}; Curve{6}; Point{5}; Point{6}; Point{7}; Point{1}; Curve{5}; Point{2}; 
+}
