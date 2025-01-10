@@ -35,6 +35,8 @@ clear;clc; close all;
    end
     node_coor_1 = coor(2:563,:);
     node_coor_1(:,3) = [];
+    node_coor_1(:,1) = node_coor_1(:,1) + 1;
+    node_coor_1(:,2) = node_coor_1(:,2) + 1;
     IEN_1 = ien(8:519,2:5);
     % 关闭文件
     fclose(fid);
@@ -113,7 +115,7 @@ clear;clc; close all;
    %  IEN_3 = ien(8:8199,2:5);
    %  % 关闭文件
    %  fclose(fid);
-%% Manufactured Solution to determine BC on the right surface, top surface fixed u = 0
+%% Manufactured Solution 
 
 sigma_rr = @(Tx,R,r,theta) Tx./2.*(1 - R.^2./r.^2) + Tx./2.*(1 - 4.*R.^2./r.^2 + 3.*R.^4./r.^4).*cos(2.*theta);
 sigma_tt = @(Tx,R,r,theta) Tx./2.*(1 + R.^2./r.^2) - Tx./2.*(1 + 3.*R.^4./r.^4).*cos(2.*theta);
@@ -151,7 +153,8 @@ E = 1e9; % Young's Modulus
 pr = 0.3; % Poison's ratio
 lambda = pr*E/(1+pr)/(1-2*pr);
 mu = E/2/(1+pr);
-D = [lambda+2*mu,lambda,0;lambda,lambda+2*mu,0;0,0,mu];
+% D = (E/(1-pr^2)).*[1,pr,0;pr,1,0;0,0,(1-pr)/2];
+D = [lambda + 2*mu,lambda,0;lambda,lambda + 2*mu,0;0,0,mu];
 
 
 
@@ -308,6 +311,8 @@ for ee = 1 : n_el
 
 end
 
+
+
 d = K\F;
 d_x = zeros(length(d)/2,1);
 d_y = zeros(length(d)/2,1);
@@ -333,18 +338,25 @@ for ii = 1 : n_np
       % modify disp with the g data. Here it does nothing because g is zero
   end
 end
-distance = sqrt(disp(:,1).^2 + disp(:,2).^2);
+
+
+
+
 %%
 
-scatter(node_coor_1(:,1),node_coor_1(:,2),20,distance,'filled');
-colorbar;
-xlabel("x");
-ylabel("y");
-title("disp");
-colormap jet;
-caxis([0,1e-8]);
-axis equal;
-grid on;
+plot(node_coor_1(:,1),node_coor_1(:,2),'o')
+hold on
+plot(node_coor_1(:,1)+disp(:,1),node_coor_1(:,2)+disp(:,2),'.r')
+ 
+% scatter(node_coor_1(:,1),node_coor_1(:,2),20,disp(:,2),'filled');
+% colorbar;
+% xlabel("x");
+% ylabel("y");
+% title("disp");
+% colormap jet;
+% caxis([0,1e-8]);
+% axis equal;
+% grid on;
 
     
  
