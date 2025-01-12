@@ -260,7 +260,7 @@ for ee = 1 : n_el
                 Bb(3,1) = Na_y;
                 Bb(3,2) = Na_x;
                 k_ij = Ba'*D*Bb;
-                k_ele(2*aa-1:2*aa,2*bb-1:2*bb) = k_ij;
+                k_ele(2*aa-1:2*aa,2*bb-1:2*bb) = k_ele(2*aa-1:2*aa,2*bb-1:2*bb) + weight(ll).*detJ.*k_ij;
             end
         end 
     end
