@@ -244,17 +244,22 @@ for ee = 1 : n_el
             f_ele(2*aa-1) = f_ele_11(aa);
             f_ele(2*aa) = f_ele_22(aa);
 
-            B = zeros(3,2);
+            Ba = zeros(3,2);
+            Ba(1,2) = Na_x;
+            Ba(2,2) = Na_y;
+            Ba(3,1) = Na_y;
+            Ba(3,2) = Na_x;
             for bb = 1:n_en
+                Bb = zeros(3,2);
                 Na = Quad(aa, xi(ll), eta(ll));
                 [Na_xi, Na_eta] = Quad_grad(aa, xi(ll), eta(ll));
                 Na_x = (Na_xi * dy_deta - Na_eta * dy_dxi) / detJ;
                 Na_y = (-Na_xi * dx_deta + Na_eta * dx_dxi) / detJ;
-                B(1,2) = Na_x;
-                B(2,2) = Na_y;
-                B(3,1) = Na_y;
-                B(3,2) = Na_x;
-                k_ij = B'*D*B;
+                Bb(1,2) = Na_x;
+                Bb(2,2) = Na_y;
+                Bb(3,1) = Na_y;
+                Bb(3,2) = Na_x;
+                k_ij = Ba'*D*Bb;
                 k_ele(2*aa-1:2*aa,2*bb-1:2*bb) = k_ij;
             end
         end 
